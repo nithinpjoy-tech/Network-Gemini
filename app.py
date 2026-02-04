@@ -36,8 +36,10 @@ def index():
 # ----------------------------
 # Upload & Parse Logs
 # ----------------------------
-@app.route("/log-analysis", methods=["POST"])
+@app.route("/log-analysis", methods=["GET", "POST"])
 def log_analysis():
+    if request.method == "GET":
+        return render_template("log_analysis.html")
     status_message = None
 
     uploads = {
