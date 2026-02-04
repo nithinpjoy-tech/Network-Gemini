@@ -87,41 +87,36 @@ def log_analysis():
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json(silent=True) or {}
-    user_message = data.get("message", "").strip()
+    user_message = data.get("question", "").strip()
 
     if not user_message:
-        return jsonify({"error": "Message is required"}), 400
-
-    if not client.api_key:
-        return jsonify({"error": "OPENAI_API_KEY is not set on the server."}), 500
+        return jsonify({"answer": "Please enter a message."})
 
     try:
         system_prompt = f"""
 You are Network Gemini, an expert 5G Network Operations and Analytics Assistant.
 
-You can analyze:
-- 5G network logs
-- Site and sector metadata
-- Alarm and fault data
-- Network KPIs and performance indicators
+You analyze:
+- Network logs
+- Site & sector metadata
+- Alarm data
+- KPIs
 
-Your responsibilities:
-- Root cause analysis (RCA)
-- Network health assessment
-- Alarm correlation
-- Impact analysis (site, sector, service)
-- Actionable recommendations
-- Executive-level summaries when requested
+Provide:
+- RCA
+- Impact analysis
+- Recommendations
+- Executive summaries
 
-Context available:
+Context:
 Network Logs:
-{ANALYSIS_STORE['network_log'][:8000] if ANALYSIS_STORE['network_log'] else "No network logs uploaded."}
+{ANALYSIS_STORE['network_log'][:4000] if ANALYSIS_STORE['network_log'] else "No logs."}
 
 Network Data:
-{ANALYSIS_STORE['network_data'][:8000] if ANALYSIS_STORE['network_data'] else "No network data uploaded."}
+{ANALYSIS_STORE['network_data'][:4000] if ANALYSIS_STORE['network_data'] else "No data."}
 
 Alarm Data:
-{ANALYSIS_STORE['alarm_data'][:8000] if ANALYSIS_STORE['alarm_data'] else "No alarm data uploaded."}
+{ANALYSIS_STORE['alarm_data'][:4000] if ANALYSIS_STORE['alarm_data'] else "No alarms."}
 """
 
         response = client.chat.completions.create(
@@ -137,7 +132,10 @@ Alarm Data:
         return jsonify({"answer": reply})
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # SAFE FALLBACK — UI WILL NEVER HANG
+        return jsonify({
+            "answer": "⚠️ AI temporarily unavailable. Please check API key, quota, or billing."
+        })
 
 
 # ----------------------------
