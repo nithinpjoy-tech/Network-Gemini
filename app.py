@@ -1,144 +1,121 @@
 import os
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from openai import OpenAI
 
 # ----------------------------
-# Flask App Init
+# App Init
 # ----------------------------
 app = Flask(__name__)
 
 # ----------------------------
-# OpenAI Client Init
+# OpenAI Client (safe)
 # ----------------------------
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
-)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 # ----------------------------
-# In-memory analysis store
-# (for uploaded logs / data)
+# GLOBAL IN-MEMORY STORAGE
+# (Overwritten on every upload)
 # ----------------------------
-ANALYSIS_STORE = {
-    "network_log": None,
-    "network_data": None,
-    "alarm_data": None,
-    "summary": None
+MEMORY_STORE = {
+    "network_log": "",
+    "alarm_log": "",
+    "network_data": ""
 }
 
 # ----------------------------
-# Home Page
+# HOME
 # ----------------------------
 @app.route("/")
-def index():
+def home():
     return render_template("index.html")
 
+@app.route("/home")
+def home_redirect():
+    return redirect(url_for("home"))
 
 # ----------------------------
-# Upload & Parse Logs
+# FILE UPLOAD API
 # ----------------------------
-@app.route("/log-analysis", methods=["GET", "POST"])
-def log_analysis():
-    if request.method == "GET":
-        return render_template("log_analysis.html")
-    status_message = None
+@app.route("/upload", methods=["POST"])
+def upload():
+    for key in ["network_log", "alarm_log", "network_data"]:
+        file = request.files.get(key)
+        if file and file.filename:
+            MEMORY_STORE[key] = file.read().decode("utf-8", errors="ignore")
 
-    uploads = {
-        "network_log": request.files.get("network_log"),
-        "network_data": request.files.get("network_data"),
-        "alarm_data": request.files.get("alarm_data")
-    }
-
-    if not any(uploads.values()):
-        return render_template(
-            "log_analysis.html",
-            status_message="Please upload at least one file."
-        )
-
-    if uploads["network_log"] and uploads["network_log"].filename:
-        ANALYSIS_STORE["network_log"] = uploads["network_log"].read().decode(
-            "utf-8", errors="ignore"
-        )
-
-    if uploads["network_data"] and uploads["network_data"].filename:
-        ANALYSIS_STORE["network_data"] = uploads["network_data"].read().decode(
-            "utf-8", errors="ignore"
-        )
-
-    if uploads["alarm_data"] and uploads["alarm_data"].filename:
-        ANALYSIS_STORE["alarm_data"] = uploads["alarm_data"].read().decode(
-            "utf-8", errors="ignore"
-        )
-
-    ANALYSIS_STORE["summary"] = (
-        f"Latest uploads ready: "
-        f"Network log insights: {len(ANALYSIS_STORE['network_log'].splitlines()) if ANALYSIS_STORE['network_log'] else 0} lines scanned. | "
-        f"Network data insights: {len(ANALYSIS_STORE['network_data'].splitlines()) if ANALYSIS_STORE['network_data'] else 0} lines parsed. | "
-        f"Alarm data insights: {len(ANALYSIS_STORE['alarm_data'].splitlines()) if ANALYSIS_STORE['alarm_data'] else 0} lines scanned."
-    )
-
-    status_message = "Uploads received. Analysis is ready in the main chat."
-
-    return render_template("log_analysis.html", status_message=status_message)
-
+    return jsonify({
+        "status": "success",
+        "message": "Files stored in memory (old data overwritten)",
+        "stats": {
+            "network_log_lines": len(MEMORY_STORE["network_log"].splitlines()),
+            "alarm_log_lines": len(MEMORY_STORE["alarm_log"].splitlines()),
+            "network_data_lines": len(MEMORY_STORE["network_data"].splitlines())
+        }
+    })
 
 # ----------------------------
-# Chat Endpoint (OPENAI POWERED)
+# CHAT API
 # ----------------------------
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json(silent=True) or {}
-    user_message = data.get("question", "").strip()
+    user_message = (
+        data.get("message")
+        or data.get("question")
+        or ""
+    ).strip()
 
     if not user_message:
-        return jsonify({"answer": "Please enter a message."})
+        return jsonify({"answer": "Please enter a question."})
 
-    try:
-        system_prompt = f"""
-You are Network Gemini, an expert 5G Network Operations and Analytics Assistant.
+    # Fallback if AI disabled
+    if not client:
+        return jsonify({
+            "answer": (
+                "⚠️ AI not enabled.\n\n"
+                f"Loaded data:\n"
+                f"- Network logs: {len(MEMORY_STORE['network_log'].splitlines())} lines\n"
+                f"- Alarm logs: {len(MEMORY_STORE['alarm_log'].splitlines())} lines\n"
+                f"- Network data: {len(MEMORY_STORE['network_data'].splitlines())} lines"
+            )
+        })
 
-You analyze:
-- Network logs
-- Site & sector metadata
-- Alarm data
-- KPIs
+    system_prompt = f"""
+You are Network Gemini, a 5G Network Operations Copilot.
 
-Provide:
-- RCA
-- Impact analysis
-- Recommendations
-- Executive summaries
+Answer questions ONLY using the uploaded data.
+Do RCA, impact analysis, and recommendations.
 
-Context:
 Network Logs:
-{ANALYSIS_STORE['network_log'][:4000] if ANALYSIS_STORE['network_log'] else "No logs."}
+{MEMORY_STORE['network_log'][:4000] or "No network logs uploaded."}
+
+Alarm Logs:
+{MEMORY_STORE['alarm_log'][:4000] or "No alarm logs uploaded."}
 
 Network Data:
-{ANALYSIS_STORE['network_data'][:4000] if ANALYSIS_STORE['network_data'] else "No data."}
-
-Alarm Data:
-{ANALYSIS_STORE['alarm_data'][:4000] if ANALYSIS_STORE['alarm_data'] else "No alarms."}
+{MEMORY_STORE['network_data'][:4000] or "No network data uploaded."}
 """
 
+    try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ],
-            temperature=0.4
+            temperature=0.3
         )
 
-        reply = response.choices[0].message.content
-        return jsonify({"answer": reply})
+        return jsonify({"answer": response.choices[0].message.content})
 
-    except Exception as e:
-        # SAFE FALLBACK — UI WILL NEVER HANG
+    except Exception:
         return jsonify({
-            "answer": "⚠️ AI temporarily unavailable. Please check API key, quota, or billing."
+            "answer": "⚠️ AI service unavailable (quota / key issue)."
         })
 
-
 # ----------------------------
-# NO app.run() HERE
-# Gunicorn will start the app
+# LOCAL RUN
 # ----------------------------
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
