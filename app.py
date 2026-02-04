@@ -56,7 +56,7 @@ def _analyze_alarm_data(content):
 
 @app.route("/")
 def index():
-        return render_template("index.html", analysis_summary=ANALYSIS_STORE["summary"])
+    return render_template("index.html", analysis_summary=ANALYSIS_STORE["summary"])
 
 
 @app.route("/log-analysis", methods=["GET", "POST"])
@@ -85,7 +85,9 @@ def log_analysis():
             status_message = "Uploads received. Analysis is ready in the main chat."
 
     return render_template("log_analysis.html", status_message=status_message)
-    @app.route("/chat", methods=["POST"])
+
+
+@app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json(silent=True) or {}
     message = (data.get("message") or "").strip()
@@ -99,7 +101,7 @@ def chat():
     payload = {
         "model": "gpt-4o-mini",
         "messages": [
-           {
+            {
                 "role": "system",
                 "content": "You are Network Gemini, a helpful network operations assistant.",
             },
@@ -107,7 +109,8 @@ def chat():
         ],
         "temperature": 0.4,
     }
- if ANALYSIS_STORE["summary"]:
+
+    if ANALYSIS_STORE["summary"]:
         payload["messages"].insert(
             1,
             {
