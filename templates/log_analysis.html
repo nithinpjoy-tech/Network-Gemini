@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Network Gemini</title>
+    <title>Log analysis - Network Gemini</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   </head>
   <body>
@@ -18,8 +18,10 @@
           </div>
 
           <button class="menu-button" data-target="activities">Network Activities</button>
-          <div class="submenu" id="activities">
-            <button class="submenu-item">Log analysis</button>
+          <div class="submenu open" id="activities">
+            <a class="submenu-item submenu-link" href="{{ url_for('log_analysis') }}">
+              Log analysis
+            </a>
           </div>
 
           <button class="menu-button" data-target="dashboard">Network Dashboard</button>
@@ -52,27 +54,43 @@
 
       <main class="main">
         <header class="top-bar">
-          <div class="status-pill">Connected</div>
+          <div class="status-pill">Log analysis</div>
           <div class="brand">Network Gemini</div>
         </header>
 
-        <section class="chat-wrapper">
-          <div class="chat-window" id="chat-window">
-            <div class="message system">
-              <div class="bubble">
-                Welcome to Network Gemini. Ask about network health, logs, or day-to-day tasks.
-              </div>
-            </div>
-          </div>
+        <section class="analysis-wrapper">
+          <h1>Log analysis</h1>
+          <p class="analysis-subtitle">
+            Upload data sources to analyze network issues and map site parameters across logs
+            and alarms.
+          </p>
 
-          <form class="chat-input" id="chat-form">
-            <input
-              type="text"
-              id="chat-message"
-              placeholder="Send a message"
-              autocomplete="off"
-            />
-            <button type="submit">Send</button>
+          {% if status_message %}
+          <div class="analysis-status">{{ status_message }}</div>
+          {% endif %}
+
+          <form class="analysis-form" method="post" enctype="multipart/form-data">
+            <div class="analysis-row">
+              <div class="analysis-field">
+                <label for="network-log">Upload network log</label>
+                <input id="network-log" type="file" name="network_log" />
+              </div>
+              <button class="analysis-submit" type="submit">Submit</button>
+            </div>
+            <div class="analysis-row">
+              <div class="analysis-field">
+                <label for="network-data">Upload Network data</label>
+                <input id="network-data" type="file" name="network_data" />
+              </div>
+              <button class="analysis-submit" type="submit">Submit</button>
+            </div>
+            <div class="analysis-row">
+              <div class="analysis-field">
+                <label for="alarm-data">Alarm data</label>
+                <input id="alarm-data" type="file" name="alarm_data" />
+              </div>
+              <button class="analysis-submit" type="submit">Submit</button>
+            </div>
           </form>
         </section>
       </main>
