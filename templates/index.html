@@ -1,100 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Network Gemini</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <aside class="sidebar">
-        <div class="logo">Network Suite</div>
-        <div class="menu">
-          <button class="menu-button" data-target="copilot">Co Pilot</button>
-          <div class="submenu" id="copilot">
-            <button class="submenu-item">Email assistant</button>
-            <button class="submenu-item">Daily activities</button>
-          </div>
+<head>
+  <meta charset="UTF-8" />
+  <title>Network Gemini</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
 
-          <button class="menu-button" data-target="activities">Network Activities</button>
-          <div class="submenu" id="activities">
-             <a class="submenu-item submenu-link" href="{{ url_for('log_analysis') }}">
-              Log analysis
-            </a>
-          </div>
+<body>
+<div class="app-shell">
 
-          <button class="menu-button" data-target="dashboard">Network Dashboard</button>
-          <div class="submenu" id="dashboard">
-            <button class="submenu-item">Network Dashboard</button>
-            <button class="submenu-item">Daily dashboards</button>
-            <a
-              class="submenu-item submenu-link"
-              href="http://darknoc.capgemini.com:8090"
-              target="_blank"
-              rel="noopener"
-            >
-              Dark NOC
-            </a>
-            <a
-              class="submenu-item submenu-link"
-              href="http://darknoc.capgemini.com:8090"
-              target="_blank"
-              rel="noopener"
-            >
-              Dark NOC
-            </a>
-          </div>
-        </div>
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="logo">Network Suite</div>
 
+    <div class="menu">
+
+      <!-- Copilot -->
+      <button class="menu-button" data-target="copilot">Co-Pilot</button>
+      <div class="submenu" id="copilot">
+        <button class="submenu-item">Daily activities</button>
+        <button class="submenu-item">Email assistant</button>
+      </div>
+
+      <!-- Log Analysis -->
+      <button class="menu-button" data-target="log-analysis">
+        Log Analysis
+      </button>
+
+      <div class="submenu" id="log-analysis">
+
+        <!-- Upload Centre (hidden until expanded) -->
         <div class="upload-center">
-          <div class="upload-title">Upload centre</div>
-          <label class="upload-box" for="upload-input">
-            <span>Drop files or click to upload</span>
-            <input id="upload-input" type="file" multiple />
-          </label>
-          <div class="upload-actions">
-            <button class="secondary">Browse</button>
-            <button class="primary">Upload</button>
+          <p class="upload-title">Upload Network Files</p>
+
+          <input type="file" id="network-log" hidden />
+          <input type="file" id="alarm-log" hidden />
+          <input type="file" id="network-data" hidden />
+
+          <button class="upload-btn" onclick="triggerUpload()">
+            ➕ Upload files
+          </button>
+
+          <small class="upload-hint">
+            Network logs, alarms, site data
+          </small>
+        </div>
+
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <!-- Top bar -->
+    <header class="top-bar">
+      <button class="home-btn" onclick="window.location.href='/'">🏠</button>
+      <span class="brand">Network Gemini</span>
+    </header>
+
+    <!-- Chat -->
+    <section class="chat-wrapper">
+
+      <div class="chat-window" id="chat-window">
+        <div class="message system">
+          <div class="bubble">
+            Upload network data and ask questions about health, alarms, or RCA.
           </div>
         </div>
-      </aside>
+      </div>
 
-      <main class="main">
-        <header class="top-bar">
-          <div class="status-pill">Connected</div>
-          <div class="brand">Network Gemini</div>
-        </header>
+      <!-- ChatGPT-like input -->
+      <form class="chat-input" id="chat-form">
+        <input
+          id="chat-message"
+          placeholder="Ask anything about your network…"
+          autocomplete="off"
+        />
+        <button type="submit">➤</button>
+      </form>
 
-        <section class="chat-wrapper">
-          <div class="chat-window" id="chat-window">
-            <div class="message system">
-              <div class="bubble">
-                Welcome to Network Gemini. Ask about network health, logs, or day-to-day tasks.
-              </div>
-            </div>
-            {% if analysis_summary %}
-            <div class="message system">
-              <div class="bubble">
-                Latest uploads ready: {{ analysis_summary }}
-              </div>
-            </div>
-            {% endif %}            
-          </div>
+    </section>
+  </main>
+</div>
 
-          <form class="chat-input" id="chat-form">
-            <input
-              type="text"
-              id="chat-message"
-              placeholder="Send a message"
-              autocomplete="off"
-            />
-            <button type="submit">Send</button>
-          </form>
-        </section>
-      </main>
-    </div>
-
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
-  </body>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
 </html>
