@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log analysis - Network Gemini</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="logo">Network Suite</div>
+        <div class="menu">
+          <button class="menu-button" data-target="copilot">Co Pilot</button>
+          <div class="submenu" id="copilot">
+            <button class="submenu-item">Email assistant</button>
+            <button class="submenu-item">Daily activities</button>
+          </div>
+
+          <button class="menu-button" data-target="activities">Network Activities</button>
+          <div class="submenu open" id="activities">
+            <a class="submenu-item submenu-link" href="{{ url_for('log_analysis') }}">
+              Log analysis
+            </a>
+          </div>
+
+          <button class="menu-button" data-target="dashboard">Network Dashboard</button>
+          <div class="submenu" id="dashboard">
+            <button class="submenu-item">Network Dashboard</button>
+            <button class="submenu-item">Daily dashboards</button>
+            <a
+              class="submenu-item submenu-link"
+              href="http://darknoc.capgemini.com:8090"
+              target="_blank"
+              rel="noopener"
+            >
+              Dark NOC
+            </a>
+          </div>
+        </div>
+
+        <div class="upload-center">
+          <div class="upload-title">Upload centre</div>
+          <label class="upload-box" for="upload-input">
+            <span>Drop files or click to upload</span>
+            <input id="upload-input" type="file" multiple />
+          </label>
+          <div class="upload-actions">
+            <button class="secondary">Browse</button>
+            <button class="primary">Upload</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="top-bar">
+          <div class="status-pill">Log analysis</div>
+          <div class="brand">Network Gemini</div>
+        </header>
+
+        <section class="analysis-wrapper">
+          <h1>Log analysis</h1>
+          <p class="analysis-subtitle">
+            Upload data sources to analyze network issues and map site parameters across logs
+            and alarms.
+          </p>
+
+          {% if status_message %}
+          <div class="analysis-status">{{ status_message }}</div>
+          {% endif %}
+
+          <form class="analysis-form" method="post" enctype="multipart/form-data">
+            <div class="analysis-row">
+              <div class="analysis-field">
+                <label for="network-log">Upload network log</label>
+                <input id="network-log" type="file" name="network_log" />
+              </div>
+              <button class="analysis-submit" type="submit">Submit</button>
+            </div>
+            <div class="analysis-row">
+              <div class="analysis-field">
+                <label for="network-data">Upload Network data</label>
+                <input id="network-data" type="file" name="network_data" />
+              </div>
+              <button class="analysis-submit" type="submit">Submit</button>
+            </div>
+            <div class="analysis-row">
+              <div class="analysis-field">
+                <label for="alarm-data">Alarm data</label>
+                <input id="alarm-data" type="file" name="alarm_data" />
+              </div>
+              <button class="analysis-submit" type="submit">Submit</button>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>
