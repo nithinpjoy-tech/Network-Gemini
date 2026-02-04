@@ -87,7 +87,10 @@ body {
   text-align: left;
   cursor: pointer;
 }
-
+submenu-link {
+  display: block;
+  text-decoration: none;
+}
 .upload-center {
   margin-top: auto;
   background: rgba(255, 255, 255, 0.08);
