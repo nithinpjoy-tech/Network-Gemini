@@ -19,13 +19,23 @@
 
           <button class="menu-button" data-target="activities">Network Activities</button>
           <div class="submenu" id="activities">
-            <button class="submenu-item">Log analysis</button>
+             <a class="submenu-item submenu-link" href="{{ url_for('log_analysis') }}">
+              Log analysis
+            </a>
           </div>
 
           <button class="menu-button" data-target="dashboard">Network Dashboard</button>
           <div class="submenu" id="dashboard">
             <button class="submenu-item">Network Dashboard</button>
             <button class="submenu-item">Daily dashboards</button>
+            <a
+              class="submenu-item submenu-link"
+              href="http://darknoc.capgemini.com:8090"
+              target="_blank"
+              rel="noopener"
+            >
+              Dark NOC
+            </a>
             <a
               class="submenu-item submenu-link"
               href="http://darknoc.capgemini.com:8090"
@@ -63,6 +73,13 @@
                 Welcome to Network Gemini. Ask about network health, logs, or day-to-day tasks.
               </div>
             </div>
+            {% if analysis_summary %}
+            <div class="message system">
+              <div class="bubble">
+                Latest uploads ready: {{ analysis_summary }}
+              </div>
+            </div>
+            {% endif %}            
           </div>
 
           <form class="chat-input" id="chat-form">
